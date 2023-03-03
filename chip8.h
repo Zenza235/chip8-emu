@@ -44,7 +44,8 @@ class Chip8 {
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
 
-        void handleOperation(int op);
+        void handle8();
+        void handleF();
     
     public:
         void initialize();

@@ -83,7 +83,7 @@ void Chip8::emulateCycle() {
             pc += 2;
             break;
         case 0x8000: // operations
-            handleOperation(opcode & 0x000F);
+            handle8();
             pc += 2;
         case 0x9000:
             (V[opcode & 0x0F00] != V[opcode & 0x00F0]) ? pc += 4 : pc += 2;
@@ -104,6 +104,8 @@ void Chip8::emulateCycle() {
         case 0xE000:
             break;
         case 0xF000:
+            handleF();
+            pc += 2;
             break;
         default:
             throw "Invalid instruction encountered";
@@ -113,25 +115,82 @@ void Chip8::emulateCycle() {
     // update timers
 }
 
-void handleOperation(int op) {
-    switch (op) {
-        case 0x1:
+void Chip8::handle8() {
+    unsigned short x = opcode & 0x0F00;
+    unsigned short y = opcode & 0x00F0;
+
+    switch (opcode & 0x000F) {
+        case 0x0000:
+            V[x] = V[y];
             break;
-        case 0x2:
+        case 0x0001:
+            V[x] |= V[y];
             break;
-        case 0x3:
+        case 0x0002:
+            V[x] &= V[y];
             break;
-        case 0x4:
+        case 0x0003:
+            V[x] ^= V[y];
             break;
-        case 0x5:
+        case 0x0004:
+            if (V[y >> 4] > (0xFF - V[x >> 8]))
+                V[0xF] = 1;
+            else
+                V[0xF] = 0;
+            V[x >> 8] += V[y >> 4];
             break;
-        case 0x6:
+        case 0x0005: // VX = VX - VY
+            // if ()
             break;
-        case 0x7:
+        case 0x0006: // LSB
+            V[0xF] = V[x] & 1;
+            V[x] >>= 1;
             break;
-        case 0xE:
+        case 0x0007: // VX = VY - VX
+            break;
+        case 0x000E: // MSB
+            V[0xF] = V[x] & 128;
+            V[x] >>= 1;
             break;
         default:
-            throw "Invalid instruction encountered"
+            throw "Invalid instruction encountered";
+    }
+}
+
+void Chip8::handleF() {
+    unsigned short x = opcode & 0x0F00;
+
+    switch(opcode & 0x00FF) {
+        case 0x0007:
+            V[x] = delayTimer;
+            break;
+        case 0x000A: // key operation
+            break;
+        case 0x0015: // delay
+            delayTimer = V[x];
+            break;
+        case 0x0018: // sound
+            soundTimer = V[x];
+            break;
+        case 0x001E:
+            I += V[x];
+            break;
+        case 0x0029:
+            break;
+        case 0x0033:
+            memory[I] = V[x >> 8] / 100;
+            memory[I + 1] = (V[x >> 8] / 10) % 10;
+            memory[I + 2] = (V[x >> 8] % 100) % 10;
+            break;
+        case 0x0055:
+            for (unsigned short i = 0; i <= x; ++i)
+                memory[I + i] = V[i];
+            break;
+        case 0x0065:
+            for (unsigned short i = 0; i <= x; ++i)
+                V[i] = memory[I];
+            break;
+        default:
+            throw "Invalid instruction encountered";
     }
 }
