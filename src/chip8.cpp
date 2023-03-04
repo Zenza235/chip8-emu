@@ -3,7 +3,7 @@
 #include "chip8.h"
 using namespace std;
 
-void Chip8::initialize() {
+void Chip8::init() {
     pc     = 0x200;
     opcode = 0;
     I      = 0;

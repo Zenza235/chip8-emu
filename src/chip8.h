@@ -5,7 +5,6 @@ class Chip8 {
         unsigned char gfx[64 * 32]; // 64 * 32 px screen
         unsigned char key[16]; // represents keyboard input
 
-        void initialize();
         void emulateCycle();
         void loadGame(char* file);
         void setKeys();
@@ -50,6 +49,8 @@ class Chip8 {
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
         
+        void init();
+
         void handle0Ins();
         void handle8Ins();
         void drawPixel();
