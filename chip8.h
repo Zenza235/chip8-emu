@@ -43,7 +43,8 @@ class Chip8 {
             0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
-
+        
+        void handle0Ins();
         void handle8Ins();
         void handleFIns();
         void drawPixel();

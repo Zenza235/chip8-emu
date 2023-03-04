@@ -1,6 +1,5 @@
 #include <iostream>
 #include <stdio.h>
-#include <format>
 #include "chip8.h"
 using namespace std;
 
@@ -11,7 +10,6 @@ void Chip8::initialize() {
     sp     = 0;
 
     // clear display, stack, registers V0-VF, memory
-    fill(begin(gfx), end(gfx), 0);
     fill(begin(gfx), end(gfx), 0);
     fill(begin(stack), end(stack), 0);
     fill(begin(V), end(V), 0);
@@ -57,7 +55,9 @@ void Chip8::emulateCycle() {
 
     // decode & execute opcode
     switch(opcode & 0xF000) {
-        case 0x0000: // do something
+        case 0x0000:
+            handle0Ins();
+            pc += 2;
         break;
 
         case 0x1000: // jump to NNN
@@ -87,7 +87,7 @@ void Chip8::emulateCycle() {
             pc += 2;
         break;
 
-        case 0x7000: // add NN to VX
+        case 0x7000: // add NN to VX (no carry)
             V[opcode & 0x0F00 >> 8] += opcode & 0x00FF;
             pc += 2;
         break;
@@ -129,15 +129,38 @@ void Chip8::emulateCycle() {
         break;
 
         default:
-            throw format("Invalid instruction encountered: {}", opcode);
+            printf("Unknown opcode: 0x%X\n", opcode);
     }
 
     // update timers
+    if (delayTimer > 0)
+        --delayTimer;
+    
+    if (soundTimer > 0)
+        if (soundTimer == 1)
+            cout << "BEEP\n";
+}
+
+void Chip8::handle0Ins() {
+    switch (opcode & 0x000F) {
+        case 0x0000: // clear screen
+            fill(begin(gfx), end(gfx), 0);
+            drawFlag = true;
+        break;
+
+        case 0x000E: // return from subroutine
+            --sp;
+            pc = stack[sp];
+        break;
+
+        default:
+            printf("Unknown opcode [0x0000]: 0x%X\n", opcode);
+    }
 }
 
 void Chip8::handle8Ins() {
-    unsigned short X = opcode & 0x0F00 >> 8;
-    unsigned short Y = opcode & 0x00F0 >> 4;
+    unsigned char X = opcode & 0x0F00 >> 8;
+    unsigned char Y = opcode & 0x00F0 >> 4;
 
     switch (opcode & 0x000F) {
         case 0x0000:
@@ -182,12 +205,32 @@ void Chip8::handle8Ins() {
         break;
 
         default:
-            throw format("Invalid 0x8000 instruction encountered: {}", opcode);
+            printf("Unknown opcode [0x8000]: 0x%X\n", opcode);
     }
 }
 
+void Chip8::drawPixel() {
+    unsigned short VX = V[opcode & 0x0F00 >> 8];
+    unsigned short VY = V[opcode & 0x00F0 >> 4];
+    unsigned short height = opcode & 0x000F;
+    unsigned short pixel;
+
+    V[0xF] = 0;
+    for (int yLine = 0; yLine < height; yLine++) {
+        pixel = memory[I + yLine];
+        for (int xLine = 0; xLine < 8; xLine++) {
+            if ((pixel & (0x80 >> xLine)) != 0) {
+                if (gfx[(VX + xLine) + ((VY + yLine) * 64)] == 1)
+                    V[0xF] = 1;
+                gfx[(VX + xLine) + ((VY + yLine) * 64)] ^= 1;
+            }
+        }
+    }
+    drawFlag = true;
+}
+
 void Chip8::handleFIns() {
-    unsigned short X = opcode & 0x0F00 >> 8;
+    unsigned char X = opcode & 0x0F00 >> 8;
 
     switch(opcode & 0x00FF) {
         case 0x0007:
@@ -230,6 +273,6 @@ void Chip8::handleFIns() {
         break;
 
         default:
-            throw format("Invalid 0xF000 instruction encountered: {}", opcode);
+            printf("Unknown opcode [0xF000]: 0x%X\n", opcode);
     }
 }
