@@ -236,16 +236,16 @@ void Chip8::handleEIns() {
     unsigned short X = opcode & 0x0F00 >> 8;
 
     switch (opcode & 0x00FF) {
-        case 0x009E:
-
+        case 0x009E: // skip if pressed
+            (key[V[X]] != 0) ? pc += 4 : pc += 2;
         break;
 
-        case 0x00A1:
-
+        case 0x00A1: // skip if not pressed
+            (key[V[X]] == 0) ? pc += 4 : pc += 2;
         break;
 
         default:
-            printf("Unknown opcode [0xE000]: 0x%X\n", opcode)
+            printf("Unknown opcode [0xE000]: 0x%X\n", opcode);
     }
 }
 

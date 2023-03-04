@@ -3,6 +3,7 @@
 class Chip8 {
     public:
         unsigned char gfx[64 * 32]; // 64 * 32 px screen
+        unsigned char key[16]; // represents keyboard input
 
         void initialize();
         void emulateCycle();
@@ -27,8 +28,6 @@ class Chip8 {
 
         unsigned short stack[16]; // used to handle instruction jumps
         unsigned short sp; // stack pointer
-
-        unsigned char key[16]; // represents keyboard input
 
         bool drawFlag;
 
