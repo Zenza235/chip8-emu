@@ -21,6 +21,8 @@ void Chip8::initialize() {
     
     delayTimer = 0;
     soundTimer = 0;
+
+    drawFlag = true;
 }
 
 void Chip8::loadGame(char* filePath) {

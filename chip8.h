@@ -1,6 +1,14 @@
 #pragma once
 
 class Chip8 {
+    public:
+        unsigned char gfx[64 * 32]; // 64 * 32 px screen
+
+        void initialize();
+        void emulateCycle();
+        void loadGame(char* file);
+        void setKeys();
+
     private:
         unsigned short opcode; // 2 bytes
         unsigned char memory[4096]; // 4096 bytes of ram
@@ -13,7 +21,6 @@ class Chip8 {
         // 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
         // 0x200-0xFFF - Program ROM and work RAM
 
-        unsigned char gfx[64 * 32]; // 64 * 32 px screen
 
         unsigned char delayTimer;
         unsigned char soundTimer;
@@ -49,10 +56,4 @@ class Chip8 {
         void drawPixel();
         void handleEIns();
         void handleFIns();
-    
-    public:
-        void initialize();
-        void emulateCycle();
-        void loadGame(char* file);
-        void setKeys();
 };
