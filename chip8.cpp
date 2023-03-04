@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdio.h>
+#include <format>
 #include "chip8.h"
 using namespace std;
 
@@ -53,144 +54,182 @@ void Chip8::loadGame(char* filePath) {
 void Chip8::emulateCycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
-    // decode opcode
+
+    // decode & execute opcode
     switch(opcode & 0xF000) {
         case 0x0000: // do something
-            break;
+        break;
+
         case 0x1000: // jump to NNN
             pc = opcode & 0x0FFF;
-            break;
+        break;
+
         case 0x2000: // subroutine @ NNN
             stack[sp] = pc;
             ++sp;
             pc = opcode & 0x0FFF;
-            break;
+        break;
+
         case 0x3000: // skip next ins if VX == NN
-            (V[opcode & 0x0F00] == (opcode & 0x00FF)) ? pc += 4 : pc += 2;
-            break;
+            (V[opcode & 0x0F00 >> 8] == (opcode & 0x00FF)) ? pc += 4 : pc += 2;
+        break;
+
         case 0x4000: // skip next ins if VX != NN
-            (V[opcode & 0x0F00] != (opcode & 0x00FF)) ? pc += 4 : pc += 2;
-            break;
+            (V[opcode & 0x0F00 >> 8] != (opcode & 0x00FF)) ? pc += 4 : pc += 2;
+        break;
+
         case 0x5000: // skip next ins if VX == VY
-            (V[opcode & 0x0F00] == V[opcode & 0x00F0]) ? pc += 4 : pc += 2;
-            break;
+            (V[opcode & 0x0F00 >> 8] == V[opcode & 0x00F0 >> 4]) ? pc += 4 : pc += 2;
+        break;
+
         case 0x6000: // set VX to NN
-            V[opcode & 0x0F00] = opcode & 0x00FF;
+            V[opcode & 0x0F00 >> 8] = opcode & 0x00FF;
             pc += 2;
-            break;
+        break;
+
         case 0x7000: // add NN to VX
-            V[opcode & 0x0F00] += opcode & 0x00FF;
+            V[opcode & 0x0F00 >> 8] += opcode & 0x00FF;
             pc += 2;
-            break;
+        break;
+
         case 0x8000: // operations
-            handle8();
+            handle8Ins();
             pc += 2;
+        break;
+
         case 0x9000:
-            (V[opcode & 0x0F00] != V[opcode & 0x00F0]) ? pc += 4 : pc += 2;
-            break;
+            (V[opcode & 0x0F00 >> 8] != V[opcode & 0x00F0 >> 4]) ? pc += 4 : pc += 2;
+        break;
+
         case 0xA000: // Set I to NN
             I = opcode & 0x00FF;
             pc += 2;
-            break;
+        break;
+
         case 0xB000: // Jump to V0 + NNN
             pc = V[0] + opcode & (0x0FFF);
-            break;
+        break;
+
         case 0xC000: // Random
-            V[opcode & 0x0F00] = rand() & (opcode & 0x0FF);
+            V[opcode & 0x0F00 >> 8] = rand() & (opcode & 0x0FF);
             pc += 2;
-            break;
+        break;
+
         case 0xD000: // Draw pixel
-            break;
-        case 0xE000:
-            break;
-        case 0xF000:
-            handleF();
+            drawPixel();
             pc += 2;
-            break;
+        break;
+
+        case 0xE000:
+        break;
+
+        case 0xF000:
+            handleFIns();
+            pc += 2;
+        break;
+
         default:
-            throw "Invalid instruction encountered";
+            throw format("Invalid instruction encountered: {}", opcode);
     }
-    // execute opcode
 
     // update timers
 }
 
-void Chip8::handle8() {
-    unsigned short x = opcode & 0x0F00;
-    unsigned short y = opcode & 0x00F0;
+void Chip8::handle8Ins() {
+    unsigned short X = opcode & 0x0F00 >> 8;
+    unsigned short Y = opcode & 0x00F0 >> 4;
 
     switch (opcode & 0x000F) {
         case 0x0000:
-            V[x] = V[y];
-            break;
+            V[X] = V[Y];
+        break;
+
         case 0x0001:
-            V[x] |= V[y];
-            break;
+            V[X] |= V[Y];
+        break;
+
         case 0x0002:
-            V[x] &= V[y];
-            break;
+            V[X] &= V[Y];
+        break;
+
         case 0x0003:
-            V[x] ^= V[y];
-            break;
-        case 0x0004:
-            if (V[y >> 4] > (0xFF - V[x >> 8]))
-                V[0xF] = 1;
-            else
-                V[0xF] = 0;
-            V[x >> 8] += V[y >> 4];
-            break;
-        case 0x0005: // VX = VX - VY
-            // if ()
-            break;
+            V[X] ^= V[Y];
+        break;
+
+        case 0x0004: // Vx + Vy (VF = 1 if carry else 0)
+            V[0xF] = (V[Y] > (0xFF - V[X])) ? 1 : 0;
+            V[X] += V[Y];
+        break;
+
+        case 0x0005: // Vx - Vy (VF = 0 if borrow else 1)
+            V[0xF] = (V[Y] > V[X]) ? 0 : 1;
+            V[X] -= V[Y];
+        break;
+
         case 0x0006: // LSB
-            V[0xF] = V[x] & 1;
-            V[x] >>= 1;
-            break;
+            V[0xF] = V[Y] & 0x1;
+            V[X] >>= 1;
+        break;
+
         case 0x0007: // VX = VY - VX
-            break;
+            V[0xF] = (V[X] > V[Y]) ? 0 : 1;
+            V[X] = V[Y] - V[X];
+        break;
+
         case 0x000E: // MSB
-            V[0xF] = V[x] & 128;
-            V[x] >>= 1;
-            break;
+            V[0xF] = V[X] >> 7;
+            V[X] <<= 1;
+        break;
+
         default:
-            throw "Invalid instruction encountered";
+            throw format("Invalid 0x8000 instruction encountered: {}", opcode);
     }
 }
 
-void Chip8::handleF() {
-    unsigned short x = opcode & 0x0F00;
+void Chip8::handleFIns() {
+    unsigned short X = opcode & 0x0F00 >> 8;
 
     switch(opcode & 0x00FF) {
         case 0x0007:
-            V[x] = delayTimer;
-            break;
+            V[X] = delayTimer;
+        break;
+
         case 0x000A: // key operation
-            break;
+        break;
+
         case 0x0015: // delay
-            delayTimer = V[x];
-            break;
+            delayTimer = V[X];
+        break;
+
         case 0x0018: // sound
-            soundTimer = V[x];
-            break;
+            soundTimer = V[X];
+        break;
+
         case 0x001E:
-            I += V[x];
-            break;
+            I += V[X];
+        break;
+
         case 0x0029:
-            break;
-        case 0x0033:
-            memory[I] = V[x >> 8] / 100;
-            memory[I + 1] = (V[x >> 8] / 10) % 10;
-            memory[I + 2] = (V[x >> 8] % 100) % 10;
-            break;
-        case 0x0055:
-            for (unsigned short i = 0; i <= x; ++i)
+        
+        break;
+
+        case 0x0033: // store decimal vals in mem
+            memory[I] = V[X] / 100;
+            memory[I + 1] = (V[X] / 10) % 10;
+            memory[I + 2] = (V[X] % 100) % 10;
+        break;
+
+        case 0x0055: // load regs
+            for (unsigned short i = 0; i <= X; ++i)
                 memory[I + i] = V[i];
-            break;
-        case 0x0065:
-            for (unsigned short i = 0; i <= x; ++i)
-                V[i] = memory[I];
-            break;
+        break;
+
+        case 0x0065: // write to regs
+            for (unsigned short i = 0; i <= X; ++i)
+                V[i] = memory[I + i];
+        break;
+
         default:
-            throw "Invalid instruction encountered";
+            throw format("Invalid 0xF000 instruction encountered: {}", opcode);
     }
 }

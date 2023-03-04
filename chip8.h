@@ -44,8 +44,9 @@ class Chip8 {
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
 
-        void handle8();
-        void handleF();
+        void handle8Ins();
+        void handleFIns();
+        void drawPixel();
     
     public:
         void initialize();
