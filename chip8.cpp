@@ -120,7 +120,8 @@ void Chip8::emulateCycle() {
             pc += 2;
         break;
 
-        case 0xE000:
+        case 0xE000: // key input
+            handleEIns();
         break;
 
         case 0xF000:
@@ -227,6 +228,23 @@ void Chip8::drawPixel() {
         }
     }
     drawFlag = true;
+}
+
+void Chip8::handleEIns() {
+    unsigned short X = opcode & 0x0F00 >> 8;
+
+    switch (opcode & 0x00FF) {
+        case 0x009E:
+
+        break;
+
+        case 0x00A1:
+
+        break;
+
+        default:
+            printf("Unknown opcode [0xE000]: 0x%X\n", opcode)
+    }
 }
 
 void Chip8::handleFIns() {
