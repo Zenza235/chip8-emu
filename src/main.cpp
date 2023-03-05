@@ -1,5 +1,5 @@
 #include "chip8.h"
-#include "../glfw-3.3.8/include/GLFW/glfw3.h"
+#include <glfw3.h>
 #include <iostream>
 #include <cstdio>
 #include <map>
