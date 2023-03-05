@@ -1,6 +1,7 @@
 #include "chip8.h"
 #include <iostream>
 #include <stdio.h>
+#include <time.h>
 using namespace std;
 
 unsigned char Chip8::fontset[80] = {
@@ -43,6 +44,8 @@ Chip8::Chip8() {
     sound_timer = 0;
 
     draw_flag = true;
+
+    srand(time(NULL)); // init rng
 }
 
 bool Chip8::loadGame(char* filepath) {
