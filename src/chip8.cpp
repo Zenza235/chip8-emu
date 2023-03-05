@@ -91,6 +91,7 @@ bool Chip8::loadGame(const char *filename) {
     fclose(pFile);
     free(buffer);
 
+    printf("Finished loading: %s\n");
     return true;
 }
 
