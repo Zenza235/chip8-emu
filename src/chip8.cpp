@@ -23,7 +23,7 @@ unsigned char Chip8::fontset[80] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-Chip8::Chip8() {
+void Chip8::init() {
     pc     = 0x200;
     opcode = 0;
     I      = 0;
@@ -48,7 +48,10 @@ Chip8::Chip8() {
     srand(time(NULL)); // init rng
 }
 
-bool Chip8::loadGame(char* filepath) {
+bool Chip8::loadGame(const char* filepath) {
+    init();
+    printf("Loading %s...\n", filepath);
+
     FILE* file;
     long l_size;
     char* buffer;

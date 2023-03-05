@@ -27,6 +27,8 @@ class Chip8 {
 
         static unsigned char fontset[80]; // 4x5 px font
         
+        void init();
+
         /* Instruction functions */
         void handle0Ins();
         void handle8Ins();
