@@ -89,73 +89,73 @@ void Chip8::emulateCycle() {
     switch(opcode & 0xF000) {
         case 0x0000: // clear screen & end subroutine
             handle0Ins();
-        break;
+            break;
 
         case 0x1000: // jump to NNN
             pc = opcode & 0x0FFF;
-        break;
+            break;
 
         case 0x2000: // subroutine @ NNN
             stack[sp] = pc;
             ++sp;
             pc = opcode & 0x0FFF;
-        break;
+            break;
 
         case 0x3000: // skip next ins if VX == NN
             pc += (V[opcode & 0x0F00 >> 8] == (opcode & 0x00FF)) ? 4 : 2;
-        break;
+            break;
 
         case 0x4000: // skip next ins if VX != NN
             pc += (V[opcode & 0x0F00 >> 8] != (opcode & 0x00FF)) ? 4 : 2;
-        break;
+            break;
 
         case 0x5000: // skip next ins if VX == VY
             pc += (V[opcode & 0x0F00 >> 8] == V[opcode & 0x00F0 >> 4]) ? 4 : 2;
-        break;
+            break;
 
         case 0x6000: // set VX to NN
             V[opcode & 0x0F00 >> 8] = opcode & 0x00FF;
             pc += 2;
-        break;
+            break;
 
         case 0x7000: // add NN to VX (no carry)
             V[opcode & 0x0F00 >> 8] += opcode & 0x00FF;
             pc += 2;
-        break;
+            break;
 
         case 0x8000: // operations
             handle8Ins();
-        break;
+            break;
 
         case 0x9000: // skip next ins if VX != VY
             pc += (V[opcode & 0x0F00 >> 8] != V[opcode & 0x00F0 >> 4]) ? 4 : 2;
-        break;
+            break;
 
         case 0xA000: // Set I to NN
             I = opcode & 0x00FF;
             pc += 2;
-        break;
+            break;
 
         case 0xB000: // Jump to V0 + NNN
             pc = V[0] + opcode & (0x0FFF);
-        break;
+            break;
 
         case 0xC000: // random number
             V[opcode & 0x0F00 >> 8] = rand() & (opcode & 0x00FF);
             pc += 2;
-        break;
+            break;
 
         case 0xD000: // draw pixel
             handleDIns();
-        break;
+            break;
 
         case 0xE000: // key input
             handleEIns();
-        break;
+            break;
 
         case 0xF000: // misc
             handleFIns();
-        break;
+            break;
 
         default:
             printf("Unknown opcode: 0x%X\n", opcode);
@@ -199,52 +199,52 @@ void Chip8::handle8Ins() {
         case 0x0000: // assignment
             V[X] = V[Y];
             pc += 2;
-        break;
+            break;
 
         case 0x0001: // VX | VY
             V[X] |= V[Y];
             pc += 2;
-        break;
+            break;
 
         case 0x0002: // VX & VY
             V[X] &= V[Y];
             pc += 2;
-        break;
+            break;
 
         case 0x0003: // VX ^ VY
             V[X] ^= V[Y];
             pc += 2;
-        break;
+            break;
 
         case 0x0004: // VX + VY (VF = 1 if carry else 0)
             V[0xF] = (V[Y] > (0xFF - V[X])) ? 1 : 0;
             V[X] += V[Y];
             pc += 2;
-        break;
+            break;
 
         case 0x0005: // VX - VY (VF = 0 if borrow else 1)
             V[0xF] = (V[Y] > V[X]) ? 0 : 1;
             V[X] -= V[Y];
             pc += 2;
-        break;
+            break;
 
         case 0x0006: // LSB
             V[0xF] = V[Y] & 0x1;
             V[X] >>= 1;
             pc += 2;
-        break;
+            break;
 
         case 0x0007: // VY - VX (reverse of 0x8005)
             V[0xF] = (V[X] > V[Y]) ? 0 : 1;
             V[X] = V[Y] - V[X];
             pc += 2;
-        break;
+            break;
 
         case 0x000E: // MSB
             V[0xF] = V[X] >> 7;
             V[X] <<= 1;
             pc += 2;
-        break;
+            break;
 
         default:
             printf("Unknown opcode [0x8000]: 0x%X\n", opcode);
@@ -278,11 +278,11 @@ void Chip8::handleEIns() {
     switch (opcode & 0x00FF) {
         case 0x009E: // skip if pressed
             pc += (key[V[X]] != 0) ? 4 : 2;
-        break;
+            break;
 
         case 0x00A1: // skip if not pressed
             pc += (key[V[X]] == 0) ? 4 : 2;
-        break;
+            break;
 
         default:
             printf("Unknown opcode [0xE000]: 0x%X\n", opcode);
@@ -296,61 +296,59 @@ void Chip8::handleFIns() {
         case 0x0007: // set VX to delay timer
             V[X] = delay_timer;
             pc += 2;
-        break;
+            break;
 
         case 0x000A: // wait for key press
             bool key_press = false;
-
-            for (int i = 0; i < 16; ++i)
+            for (int i = 0; i < 16; ++i) {
                 if (key[i] != 0) {
                     V[X] = i;
                     key_press = true;
                 }
-            
-            if (!key_press)
-                return;
+            }
+            if (!key_press) break;
             
             pc += 2;
-        break;
+            break;
 
         case 0x0015: // delay
             delay_timer = V[X];
             pc += 2;
-        break;
+            break;
 
         case 0x0018: // sound
             sound_timer = V[X];
             pc += 2;
-        break;
+            break;
 
         case 0x001E: // add VX to I
             I += V[X];
             pc += 2;
-        break;
+            break;
 
         case 0x0029: // set I to sprite location
             I = V[X] * 0x5;
             pc += 2;
-        break;
+            break;
 
         case 0x0033: // store decimal vals in mem
             memory[I] = V[X] / 100;
             memory[I + 1] = (V[X] / 10) % 10;
             memory[I + 2] = (V[X] % 100) % 10;
             pc += 2;
-        break;
+            break;
 
         case 0x0055: // load regs
             for (unsigned short i = 0; i <= X; ++i)
                 memory[I + i] = V[i];
             pc += 2;
-        break;
+            break;
 
         case 0x0065: // write to regs
             for (unsigned short i = 0; i <= X; ++i)
                 V[i] = memory[I + i];
             pc += 2;
-        break;
+            break;
 
         default:
             printf("Unknown opcode [0xF000]: 0x%X\n", opcode);
