@@ -2,11 +2,15 @@
 
 class Chip8 {
     public:
+        Chip8();
+
         unsigned char gfx[64 * 32]; // 64 * 32 px screen
         unsigned char key[16]; // represents keyboard input
 
+        bool drawFlag;
+
         void emulateCycle();
-        void loadGame(char* file);
+        bool loadGame(char* file);
         void setKeys();
 
     private:
@@ -28,8 +32,6 @@ class Chip8 {
         unsigned short stack[16]; // used to handle instruction jumps
         unsigned short sp; // stack pointer
 
-        bool drawFlag;
-
         unsigned char fontset[80] = { 
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
             0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -49,8 +51,6 @@ class Chip8 {
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
         };
         
-        void init();
-
         void handle0Ins();
         void handle8Ins();
         void drawPixel();

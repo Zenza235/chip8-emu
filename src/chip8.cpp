@@ -1,9 +1,9 @@
+#include "chip8.h"
 #include <iostream>
 #include <stdio.h>
-#include "chip8.h"
 using namespace std;
 
-void Chip8::init() {
+Chip8::Chip8() {
     pc     = 0x200;
     opcode = 0;
     I      = 0;
@@ -25,30 +25,45 @@ void Chip8::init() {
     drawFlag = true;
 }
 
-void Chip8::loadGame(char* filePath) {
+bool Chip8::loadGame(char* filePath) {
     FILE* file;
     long lSize;
     char* buffer;
     size_t result;
 
     file = fopen(filePath, "rb");
-    if (file == NULL) {fputs("File error", stderr); exit(1);}
+    if (file == NULL) {
+        fputs("File error", stderr); 
+        return false;
+    }
 
     fseek(file, 0, SEEK_END); // goes until end of file
     lSize = ftell(file); // returns number of bytes since beginning of file
     rewind(file); // rewinds stream to start of file
 
     buffer = (char*) malloc(sizeof (char) *lSize); // allocates file size amnt of memory for buffer
-    if (buffer == NULL) {fputs("Memory error", stderr); exit(2);}
+    if (buffer == NULL) {
+        fputs("Memory error", stderr); 
+        return false;
+    }
 
     result = fread(buffer, 1, lSize, file);
-    if (result != (unsigned) lSize) {fputs("Reading error", stderr); exit(3);}
+    if (result != (unsigned) lSize) {
+        fputs("Reading error", stderr);
+        return false;
+    }
 
     for(int i = 0; i < lSize; ++i)
         memory[i + 512] = buffer[i];
     
     fclose(file);
     free(buffer);
+
+    return true;
+}
+
+void setKeys() {
+
 }
 
 void Chip8::emulateCycle() {
