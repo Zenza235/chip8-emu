@@ -47,7 +47,7 @@ Chip8 chip8;
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("No game path specified.");
+        printf("Usage: ./chip8 <application>");
         return 1;
     }
 
