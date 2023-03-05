@@ -3,6 +3,25 @@
 #include <stdio.h>
 using namespace std;
 
+static unsigned char fontset[80] = { 
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
 Chip8::Chip8() {
     pc     = 0x200;
     opcode = 0;
@@ -19,41 +38,41 @@ Chip8::Chip8() {
     for(int i = 0; i < 80; ++i)
         memory[i + 80] = fontset[i];
     
-    delayTimer = 0;
-    soundTimer = 0;
+    delay_timer = 0;
+    sound_timer = 0;
 
-    drawFlag = true;
+    draw_flag = true;
 }
 
-bool Chip8::loadGame(char* filePath) {
+bool Chip8::loadGame(char* filepath) {
     FILE* file;
-    long lSize;
+    long l_size;
     char* buffer;
     size_t result;
 
-    file = fopen(filePath, "rb");
+    file = fopen(filepath, "rb");
     if (file == NULL) {
         fputs("File error", stderr); 
         return false;
     }
 
     fseek(file, 0, SEEK_END); // goes until end of file
-    lSize = ftell(file); // returns number of bytes since beginning of file
+    l_size = ftell(file); // returns number of bytes since beginning of file
     rewind(file); // rewinds stream to start of file
 
-    buffer = (char*) malloc(sizeof (char) *lSize); // allocates file size amnt of memory for buffer
+    buffer = (char*) malloc(sizeof (char) *l_size); // allocates file size amnt of memory for buffer
     if (buffer == NULL) {
         fputs("Memory error", stderr); 
         return false;
     }
 
-    result = fread(buffer, 1, lSize, file);
-    if (result != (unsigned) lSize) {
+    result = fread(buffer, 1, l_size, file);
+    if (result != (unsigned) l_size) {
         fputs("Reading error", stderr);
         return false;
     }
 
-    for(int i = 0; i < lSize; ++i)
+    for(int i = 0; i < l_size; ++i)
         memory[i + 512] = buffer[i];
     
     fclose(file);
@@ -147,11 +166,11 @@ void Chip8::emulateCycle() {
     }
 
     // update timers
-    if (delayTimer > 0)
-        --delayTimer;
+    if (delay_timer > 0)
+        --delay_timer;
     
-    if (soundTimer > 0)
-        if (soundTimer == 1)
+    if (sound_timer > 0)
+        if (sound_timer == 1)
             printf("BEEP"); // eventually replace w/ sound
 }
 
@@ -159,7 +178,7 @@ void Chip8::handle0Ins() {
     switch (opcode & 0x000F) {
         case 0x0000: // clear screen
             fill(begin(gfx), end(gfx), 0);
-            drawFlag = true;
+            draw_flag = true;
             pc += 2;
         break;
 
@@ -235,8 +254,8 @@ void Chip8::handle8Ins() {
 }
 
 void Chip8::drawPixel() {
-    unsigned short VX = V[opcode & 0x0F00 >> 8];
-    unsigned short VY = V[opcode & 0x00F0 >> 4];
+    unsigned short vx = V[opcode & 0x0F00 >> 8];
+    unsigned short vy = V[opcode & 0x00F0 >> 4];
     unsigned short height = opcode & 0x000F;
     unsigned short pixel;
 
@@ -245,13 +264,13 @@ void Chip8::drawPixel() {
         pixel = memory[I + yLine];
         for (int xLine = 0; xLine < 8; xLine++) {
             if ((pixel & (0x80 >> xLine)) != 0) {
-                if (gfx[(VX + xLine) + ((VY + yLine) * 64)] == 1)
+                if (gfx[(vx + xLine) + ((vy + yLine) * 64)] == 1)
                     V[0xF] = 1;
-                gfx[(VX + xLine) + ((VY + yLine) * 64)] ^= 1;
+                gfx[(vx + xLine) + ((vy + yLine) * 64)] ^= 1;
             }
         }
     }
-    drawFlag = true;
+    draw_flag = true;
     pc += 2;
 }
 
@@ -277,32 +296,32 @@ void Chip8::handleFIns() {
 
     switch(opcode & 0x00FF) {
         case 0x0007: // set VX to delay timer
-            V[X] = delayTimer;
+            V[X] = delay_timer;
             pc += 2;
         break;
 
         case 0x000A: // wait for key press
-            bool keyPress = false;
+            bool key_press = false;
 
             for (int i = 0; i < 16; ++i)
                 if (key[i] != 0) {
                     V[X] = i;
-                    keyPress = true;
+                    key_press = true;
                 }
             
-            if (!keyPress)
+            if (!key_press)
                 return;
             
             pc += 2;
         break;
 
         case 0x0015: // delay
-            delayTimer = V[X];
+            delay_timer = V[X];
             pc += 2;
         break;
 
         case 0x0018: // sound
-            soundTimer = V[X];
+            sound_timer = V[X];
             pc += 2;
         break;
 
