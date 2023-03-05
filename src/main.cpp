@@ -1,5 +1,7 @@
+#define GL_SILENCE_DEPRECATION
+#include "GLFW/glfw3.h"
+
 #include "chip8.h"
-#include <glfw3.h>
 #include <iostream>
 #include <cstdio>
 #include <map>
