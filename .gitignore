@@ -1,2 +1,11 @@
 src/output/
 .vscode/
+
+*.o
+
+chip8
+
+# Executables
+*.exe
+*.out
+*.app
