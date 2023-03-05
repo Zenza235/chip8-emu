@@ -23,6 +23,10 @@ unsigned char Chip8::fontset[80] = {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
+Chip8::Chip8() {
+    
+}
+
 void Chip8::init() {
     pc     = 0x200;
     opcode = 0;
@@ -48,43 +52,45 @@ void Chip8::init() {
     srand(time(NULL)); // init rng
 }
 
-bool Chip8::loadGame(const char* filepath) {
+bool Chip8::loadGame(const char *filename) {
     init();
-    printf("Loading %s...\n", filepath);
+    printf("Loading %s...\n", filename);
 
-    FILE* file;
-    long l_size;
-    char* buffer;
-    size_t result;
-
-    file = fopen(filepath, "rb");
-    if (file == NULL) {
+    FILE* pFile = fopen(filename, "rb");
+    if (pFile == NULL) {
         fputs("File error", stderr); 
         return false;
     }
 
-    fseek(file, 0, SEEK_END); // goes until end of file
-    l_size = ftell(file); // returns number of bytes since beginning of file
-    rewind(file); // rewinds stream to start of file
+    fseek(pFile, 0, SEEK_END); // goes until end of file
+    long l_size = ftell(pFile); // returns number of bytes since beginning of file
+    rewind(pFile); // rewinds stream to start of file
+    printf("File size: %d\n", (int) l_size);
 
-    buffer = (char*) malloc(sizeof (char) *l_size); // allocates file size amnt of memory for buffer
+    char *buffer = (char*) malloc(sizeof(char) *l_size); // allocates file size amnt of memory for buffer
     if (buffer == NULL) {
         fputs("Memory error", stderr); 
         return false;
     }
 
-    result = fread(buffer, 1, l_size, file);
+    size_t result = fread(buffer, 1, l_size, pFile);
     if (result != (unsigned) l_size) {
         fputs("Reading error", stderr);
         return false;
     }
 
-    for(int i = 0; i < l_size; ++i) {
-        memory[i + 512] = buffer[i];
+    if ((4096 - 512) > l_size) {
+        for(int i = 0; i < l_size; ++i) {
+            memory[i + 512] = buffer[i];
+        }
+    }
+    else {
+        printf("Error: ROM too big for memory");
     }
     
-    fclose(file);
+    fclose(pFile);
     free(buffer);
+
     return true;
 }
 

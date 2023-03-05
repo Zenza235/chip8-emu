@@ -8,7 +8,7 @@ class Chip8 {
         unsigned char key[16]; // keyboard input
         bool draw_flag;
 
-        bool loadGame(char* file);
+        bool loadGame(const char* filename);
         void emulateCycle();
 
     private:
