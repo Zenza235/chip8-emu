@@ -88,8 +88,8 @@ bool Chip8::loadGame(const char *filename) {
         printf("Error: ROM too big for memory");
     }
     
-    // fclose(pFile);
-    // free(buffer);
+    fclose(pFile);
+    free(buffer);
 
     printf("Finished loading: %s\n", filename);
     return true;
