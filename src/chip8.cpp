@@ -54,7 +54,7 @@ void Chip8::init() {
 
 bool Chip8::loadGame(const char *filename) {
     init();
-    printf("Loading %s...\n", filename);
+    printf("Loading: %s\n", filename);
 
     FILE* pFile = fopen(filename, "rb");
     if (pFile == NULL) {
