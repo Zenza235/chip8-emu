@@ -85,10 +85,12 @@ int main(int argc, char **argv) {
 }
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+        return;
+    }
     
-    else if (input_map.find(key) != input_map.end()) {
+    if (input_map.find(key) != input_map.end()) {
         int index = input_map.at(key);
         if (action == GLFW_PRESS)
             chip8.key[index] = 1;
