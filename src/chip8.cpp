@@ -34,7 +34,7 @@ Chip8::Chip8() {
     fill(begin(V), end(V), 0);
     fill(begin(memory), end(memory), 0);
 
-    // fontset
+    // loading fontset
     for(int i = 0; i < 80; ++i)
         memory[i + 80] = fontset[i];
     
@@ -77,21 +77,17 @@ bool Chip8::loadGame(char* filepath) {
     
     fclose(file);
     free(buffer);
-
     return true;
 }
 
-void setKeys() {
-
-}
-
+// TODO: use function pointer array instead of switch/case
 void Chip8::emulateCycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
 
     // decode & execute opcode
     switch(opcode & 0xF000) {
-        case 0x0000:
+        case 0x0000: // clear screen & end subroutine
             handle0Ins();
         break;
 
@@ -144,20 +140,20 @@ void Chip8::emulateCycle() {
             pc = V[0] + opcode & (0x0FFF);
         break;
 
-        case 0xC000: // Random
+        case 0xC000: // random number
             V[opcode & 0x0F00 >> 8] = rand() & (opcode & 0x00FF);
             pc += 2;
         break;
 
-        case 0xD000: // Draw pixel
-            drawPixel();
+        case 0xD000: // draw pixel
+            handleDIns();
         break;
 
         case 0xE000: // key input
             handleEIns();
         break;
 
-        case 0xF000:
+        case 0xF000: // misc
             handleFIns();
         break;
 
@@ -169,11 +165,13 @@ void Chip8::emulateCycle() {
     if (delay_timer > 0)
         --delay_timer;
     
+    // TODO: implement actual sounds
     if (sound_timer > 0)
         if (sound_timer == 1)
-            printf("BEEP"); // eventually replace w/ sound
+            printf("BEEP");
 }
 
+/* Instruction functions */
 void Chip8::handle0Ins() {
     switch (opcode & 0x000F) {
         case 0x0000: // clear screen
@@ -218,13 +216,13 @@ void Chip8::handle8Ins() {
             pc += 2;
         break;
 
-        case 0x0004: // Vx + Vy (VF = 1 if carry else 0)
+        case 0x0004: // VX + VY (VF = 1 if carry else 0)
             V[0xF] = (V[Y] > (0xFF - V[X])) ? 1 : 0;
             V[X] += V[Y];
             pc += 2;
         break;
 
-        case 0x0005: // Vx - Vy (VF = 0 if borrow else 1)
+        case 0x0005: // VX - VY (VF = 0 if borrow else 1)
             V[0xF] = (V[Y] > V[X]) ? 0 : 1;
             V[X] -= V[Y];
             pc += 2;
@@ -236,7 +234,7 @@ void Chip8::handle8Ins() {
             pc += 2;
         break;
 
-        case 0x0007: // VX = VY - VX
+        case 0x0007: // VY - VX (reverse of 0x8005)
             V[0xF] = (V[X] > V[Y]) ? 0 : 1;
             V[X] = V[Y] - V[X];
             pc += 2;
@@ -253,7 +251,7 @@ void Chip8::handle8Ins() {
     }
 }
 
-void Chip8::drawPixel() {
+void Chip8::handleDIns() {
     unsigned short vx = V[opcode & 0x0F00 >> 8];
     unsigned short vy = V[opcode & 0x00F0 >> 4];
     unsigned short height = opcode & 0x000F;
