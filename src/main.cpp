@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, keyCallback);
 
+    fill(begin(screen_data), end(screen_data), 0);
     setupTexture();
 
     // GLFW loop
