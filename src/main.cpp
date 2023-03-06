@@ -15,6 +15,7 @@ int modifier = 10;
 int display_width = SCREEN_WIDTH * modifier;
 int display_height = SCREEN_HEIGHT * modifier;
 
+// use tuples instead
 unsigned char screen_data[SCREEN_WIDTH][SCREEN_HEIGHT][3];
 void setupTexture();
 void updateTexture(const Chip8 &c8);
@@ -68,7 +69,6 @@ int main(int argc, char **argv) {
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, keyCallback);
 
-    fill(begin(screen_data), end(screen_data), 0);
     setupTexture();
 
     // GLFW loop
