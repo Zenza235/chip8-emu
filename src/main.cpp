@@ -18,9 +18,10 @@ int modifier = 10;
 int display_width = SCREEN_WIDTH * modifier;
 int display_height = SCREEN_HEIGHT * modifier;
 
-// use tuples instead
+// screen data
+const int b_size = SCREEN_HEIGHT * SCREEN_WIDTH * 3;
 typedef unsigned int u8;
-u8 screen_data[SCREEN_HEIGHT][SCREEN_WIDTH][3] = {{{0}}};
+u8 buffer[b_size];
 void setupTexture(); // NPE
 void updateTexture(const Chip8 &c8);
 
@@ -106,20 +107,13 @@ int main(int argc, char **argv) {
 void setupTexture() {
 	// Clear screen
     cout << "Filling screen_data...\n";
-	for (int row = 0; row < SCREEN_HEIGHT; ++row) {
-        for (int col = 0; col < SCREEN_WIDTH; ++col) {
-            cout << screen_data[row][col] << "\n";
-            screen_data[row][col][0] = 0;	// Disabled
-			screen_data[row][col][1] = 0;	// Disabled
-			screen_data[row][col][2] = 0;	// Disabled
-        }
-    }
+	fill(begin(buffer), end(buffer), 0);
     cout << "Finished.\n";
 
 	// Create a texture 
     // TODO: figure out how to cast to GLvoid* without causing a segfault
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screen_data);
-    cout << "\n";
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+    cout << "Loaded screen_data into texture.\n";
 
 	// Set up the texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -135,16 +129,21 @@ void updateTexture(const Chip8 &c8) {
 	// Update pixels
 	for(int row = 0; row < SCREEN_HEIGHT; ++row) {
 		for(int col = 0; col < SCREEN_WIDTH; ++col) {
-			u8 temp = (c8.gfx[(row * 64) + col] == 0) ? 0 : 255;
-            screen_data[row][col][0] = temp;
-            screen_data[row][col][1] = temp;
-            screen_data[row][col][2] = temp;
+			if (c8.gfx[(row * 64) + col] == 0) {
+                buffer[(row * 64) + (col * 3) + 0] = 0;
+                buffer[(row * 64) + (col * 3) + 1] = 0;
+                buffer[(row * 64) + (col * 3) + 2] = 0;
+            }
+            else {
+                buffer[(row * 64) + (col * 3) + 0] = 255;
+                buffer[(row * 64) + (col * 3) + 1] = 255;
+                buffer[(row * 64) + (col * 3) + 2] = 255;
+            }
         }
     }
 
-		
 	// Update Texture
-	glTexSubImage2D(GL_TEXTURE_2D, 0 ,0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)screen_data);
+	glTexSubImage2D(GL_TEXTURE_2D, 0 ,0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 	glBegin( GL_QUADS );
 		glTexCoord2d(0.0, 0.0);		glVertex2d(0.0,			  0.0);
