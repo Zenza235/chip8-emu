@@ -2,9 +2,12 @@
 #define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 #include "glad/gl.h"
+
 #include "chip8.h"
+
 #include <iostream>
 #include <cstdio>
+#include <vector>
 #include <map>
 using namespace std;
 
@@ -16,8 +19,9 @@ int display_width = SCREEN_WIDTH * modifier;
 int display_height = SCREEN_HEIGHT * modifier;
 
 // use tuples instead
-unsigned char screen_data[SCREEN_WIDTH][SCREEN_HEIGHT][3];
-void setupTexture();
+typedef unsigned int u8;
+u8 screen_data[SCREEN_HEIGHT][SCREEN_WIDTH][3] = {{{0}}};
+void setupTexture(); // NPE
 void updateTexture(const Chip8 &c8);
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -33,7 +37,7 @@ static map<int, int> input_map = {
     {GLFW_KEY_E, 0x6}, 
     {GLFW_KEY_R, 0xD}, 
 
-    {GLFW_KEY_A, 0x7},
+    {GLFW_KEY_A, 0x7}, 
     {GLFW_KEY_S, 0x8}, 
     {GLFW_KEY_D, 0x9}, 
     {GLFW_KEY_F, 0xE}, 
@@ -60,6 +64,7 @@ int main(int argc, char **argv) {
     if (!glfwInit()) {
         return -1;
     }
+    cout << "GLFW initialized.\n";
 
     GLFWwindow* window = glfwCreateWindow(display_width, display_height, "Chip-8 Emulator", NULL, NULL);
     if (!window) {
@@ -69,7 +74,10 @@ int main(int argc, char **argv) {
     glfwMakeContextCurrent(window);
     glfwSetKeyCallback(window, keyCallback);
 
+    cout << "Setting up texture.\n";
     setupTexture();
+    cout << "Finished setting up.\n";
+
 
     // GLFW loop
     while (!glfwWindowShouldClose(window)) {
@@ -97,12 +105,21 @@ int main(int argc, char **argv) {
 
 void setupTexture() {
 	// Clear screen
-	for(int y = 0; y < SCREEN_HEIGHT; ++y)		
-		for(int x = 0; x < SCREEN_WIDTH; ++x)
-			screen_data[y][x][0] = screen_data[y][x][1] = screen_data[y][x][2] = 0;
+    cout << "Filling screen_data...\n";
+	for (int row = 0; row < SCREEN_HEIGHT; ++row) {
+        for (int col = 0; col < SCREEN_WIDTH; ++col) {
+            cout << screen_data[row][col] << "\n";
+            screen_data[row][col][0] = 0;	// Disabled
+			screen_data[row][col][1] = 0;	// Disabled
+			screen_data[row][col][2] = 0;	// Disabled
+        }
+    }
+    cout << "Finished.\n";
 
 	// Create a texture 
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)screen_data);
+    // TODO: figure out how to cast to GLvoid* without causing a segfault
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*) screen_data);
+    cout << "\n";
 
 	// Set up the texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -116,12 +133,15 @@ void setupTexture() {
 
 void updateTexture(const Chip8 &c8) {	
 	// Update pixels
-	for(int y = 0; y < 32; ++y)		
-		for(int x = 0; x < 64; ++x)
-			if(c8.gfx[(y * 64) + x] == 0)
-				screen_data[y][x][0] = screen_data[y][x][1] = screen_data[y][x][2] = 0;	// Disabled
-			else 
-				screen_data[y][x][0] = screen_data[y][x][1] = screen_data[y][x][2] = 255;  // Enabled
+	for(int row = 0; row < SCREEN_HEIGHT; ++row) {
+		for(int col = 0; col < SCREEN_WIDTH; ++col) {
+			u8 temp = (c8.gfx[(row * 64) + col] == 0) ? 0 : 255;
+            screen_data[row][col][0] = temp;
+            screen_data[row][col][1] = temp;
+            screen_data[row][col][2] = temp;
+        }
+    }
+
 		
 	// Update Texture
 	glTexSubImage2D(GL_TEXTURE_2D, 0 ,0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)screen_data);

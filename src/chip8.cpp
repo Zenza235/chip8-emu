@@ -1,8 +1,8 @@
 #include "chip8.h"
+
 #include <iostream>
 #include <stdio.h>
 #include <time.h>
-using namespace std;
 
 unsigned char Chip8::fontset[80] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -34,10 +34,10 @@ void Chip8::init() {
     sp     = 0;
 
     // clear display, stack, registers V0-VF, memory
-    fill(begin(gfx), end(gfx), 0);
-    fill(begin(stack), end(stack), 0);
-    fill(begin(V), end(V), 0);
-    fill(begin(memory), end(memory), 0);
+    std::fill(std::begin(gfx), std::end(gfx), 0);
+    std::fill(std::begin(stack), std::end(stack), 0);
+    std::fill(std::begin(V), std::end(V), 0);
+    std::fill(std::begin(memory), std::end(memory), 0);
 
     // loading fontset
     for(int i = 0; i < 80; ++i) {
@@ -193,7 +193,7 @@ void Chip8::emulateCycle() {
 void Chip8::handle0Ins() {
     switch (opcode & 0x000F) {
         case 0x0000: { // clear screen
-            fill(begin(gfx), end(gfx), 0);
+            std::fill(std::begin(gfx), std::end(gfx), 0);
             draw_flag = true;
             pc += 2;
             break;
