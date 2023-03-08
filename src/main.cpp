@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     if (!glfwInit()) {
         return -1;
     }
-    cout << "GLFW initialized.\n";
+    // cout << "GLFW initialized.\n";
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -78,13 +78,15 @@ int main(int argc, char **argv) {
 
     gladLoadGL(glfwGetProcAddress); // !!
 
-    cout << "Setting up texture.\n";
+    // cout << "Setting up texture.\n";
     setupTexture();
-    cout << "Finished setting up.\n";
+    // cout << "Finished setting up.\n";
 
 
     // GLFW loop
     while (!glfwWindowShouldClose(window)) {
+
+        cout << "running cycle...\n";
         chip8.emulateCycle();
 
         if(chip8.draw_flag) {
@@ -109,7 +111,7 @@ int main(int argc, char **argv) {
 
 void setupTexture() {
 	// Clear screen
-    cout << "Filling screen_data...\n";
+    // cout << "Filling screen_data...\n";
 	for (int row = 0; row < SCREEN_HEIGHT; ++row) {
         for (int col = 0; col < SCREEN_WIDTH; ++col) {
             screen_data[row][col][0] = 0;
@@ -117,11 +119,11 @@ void setupTexture() {
             screen_data[row][col][2] = 0;
         }
     }
-    cout << "Finished.\n";
+    // cout << "Finished.\n";
 
 	// Create a texture 
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, screen_data);
-    cout << "Loaded screen_data into texture.\n";
+    // cout << "Loaded screen_data into texture.\n";
 
 	// Set up the texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
