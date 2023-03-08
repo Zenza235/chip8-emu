@@ -74,20 +74,23 @@ int main(int argc, char **argv) {
     }
 
     glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, keyCallback);
-
     gladLoadGL(glfwGetProcAddress); // !!
+    glfwSwapInterval(1);
+
+    glfwSetKeyCallback(window, keyCallback);
 
     // cout << "Setting up texture.\n";
     setupTexture();
     // cout << "Finished setting up.\n";
 
-
     // GLFW loop
     while (!glfwWindowShouldClose(window)) {
-
-        cout << "running cycle...\n";
+        // cout << "running cycle...\n";
         chip8.emulateCycle();
+
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
 
         if(chip8.draw_flag) {
             // clear screen
@@ -105,6 +108,7 @@ int main(int argc, char **argv) {
         glfwPollEvents();
     }
 
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
@@ -166,11 +170,10 @@ void updateTexture(const Chip8 &c8) {
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
-        return;
     }
-
-    if (input_map.find(key) != input_map.end()) {
+    else if (input_map.find(key) != input_map.end()) {
         int index = input_map.at(key);
+        cout << key << endl;   
         if (action == GLFW_PRESS) {
             chip8.key[index] = 1;
         }

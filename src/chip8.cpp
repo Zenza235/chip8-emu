@@ -99,6 +99,7 @@ bool Chip8::loadGame(const char *filename) {
 void Chip8::emulateCycle() {
     // fetch opcode
     opcode = memory[pc] << 8 | memory[pc + 1];
+    // printf("@ ins: 0x%X\n", opcode);
 
     // decode & execute opcode
     switch(opcode & 0xF000) {
@@ -184,7 +185,7 @@ void Chip8::emulateCycle() {
     // TODO: implement actual sounds
     if (sound_timer > 0) {
         if (sound_timer == 1) {
-            printf("BEEP");
+            std::cout << "BEEP\n";
         }
     }
 }
