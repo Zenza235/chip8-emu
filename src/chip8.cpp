@@ -153,7 +153,7 @@ void Chip8::emulateCycle() {
             break;
         }
         case 0xB000: { // Jump to V0 + NNN
-            pc = V[0] + opcode & (0x0FFF);
+            pc = V[0] + (opcode & (0x0FFF));
             break;
         }
         case 0xC000: { // random number
